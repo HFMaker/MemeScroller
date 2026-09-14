@@ -4,11 +4,6 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-#define WAIT_TIMEOUT 300000000ULL
-#define WIDTH 400
-#define HEIGHT 240
-#define SCREEN_SIZE WIDTH * HEIGHT * 2
-#define BUF_SIZE SCREEN_SIZE * 2
 
 //Variables globales
 u8 *audios[5];
@@ -145,10 +140,6 @@ int main(void) {
     // Parte del mensaje
     consoleInit(GFX_TOP, NULL);
     
-
-    u8 *buf = malloc(BUF_SIZE);
-    if (!buf) goto cleanup;
-
    
     int new_idx = 4; 
     
@@ -176,14 +167,7 @@ int main(void) {
     ndspChnSetRate(0, 44100.0f);
     ndspChnSetFormat(0, NDSP_FORMAT_MONO_PCM16);
 
-    camInit();
-    CAMU_SetSize(SELECT_OUT1_OUT2, SIZE_CTR_TOP_LCD, CONTEXT_A);
-    CAMU_SetOutputFormat(SELECT_OUT1_OUT2, OUTPUT_RGB_565, CONTEXT_A);
-    CAMU_SetNoiseFilter(SELECT_OUT1_OUT2, true);   
-    CAMU_SetAutoExposure(SELECT_OUT1_OUT2, true);
-    CAMU_SetAutoWhiteBalance(SELECT_OUT1, true);
-    CAMU_SetTrimming(PORT_CAM1, false);
-    CAMU_SetTrimming(PORT_CAM2, false);
+  
 
     consoleClear();//Limpiamos la consola y escribimos el mensaje de bienvenida junto con los controles
 
@@ -319,6 +303,8 @@ int main(void) {
                         memeGenMode = false;
                         memeGenEditor = true;
                         bool showGuide = true;
+                        static SwkbdState swkbd;
+                        static char kbd_text[128];
                         consoleClear();
                         loadImage(selectedMemeIdx);
                         printMemeGenHelpScreen();
@@ -327,8 +313,22 @@ int main(void) {
 
                             hidScanInput();
 
+                            if (hidKeysDown() & KEY_X){
+
+                                kbd_text[0] = '\0';
+                                swkbdInit(&swkbd, SWKBD_TYPE_WESTERN, 2, sizeof(text));
+                                swkbdSetFeatures(&swkbd, SWKBD_PREDICTIVE_INPUT | SWKBD_DARKEN_TOP_SCREEN);
+                                swkbdSetHintText(&swkbd, "Enter a message...");
+                                swkbdSetButton(&swkbd, SWKBD_BUTTON_LEFT, "Nope", false);
+                                swkbdSetButton(&swkbd, SWKBD_BUTTON_RIGHT, "Done!", true);
+
+                                if (swkbdInputText(&swkbd, kbd_text, sizeof(text)) == SWKBD_BUTTON_RIGHT) printCenteredText(kbd_text, 20);
+
+                            }
+
                             if (hidKeysHeld() & KEY_B){
 
+                                kbd_text[0] = '\0'
                                 consoleClear();
                                 clearScreen();
                                 clearTopScreen();
@@ -352,7 +352,7 @@ int main(void) {
                             }
 
                             
-
+                            printCenteredText(kbd_text, 20);
 
                             gfxFlushBuffers();
                             gspWaitForVBlank();
@@ -378,7 +378,6 @@ cleanup:
     consoleClear();
     ndspChnWaveBufClear(0);
     ndspExit();
-    camExit();
     for (int i = 0; i < 5; i++) if (audios[i]) linearFree(audios[i]);
     acExit();
     romfsExit();
