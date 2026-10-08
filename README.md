@@ -1,5 +1,7 @@
 ## Homebrew Meme Scroller v1.1.3
 
-This is just an app that displays a meme at the bottom screen and a message related to that meme at the top screen
+An app that displays some memes on the botoms screen at the bottoms screen of the 3DS
 
-This is actually my first 3DS Homebrew app, so I hope it's good enough :)
+You can scroll through memes, change the memes' messages and you can also use the Meme Generator (WIP)
+
+This is actually my first 3DS Homebrew app btw
